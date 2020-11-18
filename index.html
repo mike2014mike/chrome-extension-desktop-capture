@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>本機螢幕擷取範例</title>
+</head>
+
+<body>
+  <button id="btnStart" style="display:block">開始擷取</button>
+  <button id="btnStop" style="display:none">停止擷取</button>
+
+  <div>
+    <div style="margin: 0px auto; width: 800px; text-align: center;">
+      <h1>我的畫面</h1>
+      <video autoplay id="screen" width="100%" style="border: 1px solid black;"></video>
+    </div>
+  </div>
+
+
+  <script>
+    (() => {
+      const EXTENSION_ID = 'egghpkfnbfnkaffpaaonelgolpdlhhlj'; //這邊要換成您的外掛 ID
+
+      chrome.runtime.sendMessage(EXTENSION_ID, 'version', response => {
+        if (!response) {
+          console.log('找不到外掛');
+          return;
+        }
+        console.log('Extension version: ', response.version);
+        const video = document.getElementById('screen');
+        const btnStart = document.getElementById('btnStart');
+        const btnStop = document.getElementById('btnStop');
+        const request = { sources: ['window', 'screen', 'tab'] };
+        let stream;
+
+        btnStart.style.display = 'block';
+        btnStart.addEventListener('click', event => {
+          chrome.runtime.sendMessage(EXTENSION_ID, request, response => {
+            if (response && response.type === 'success') {
+              navigator.mediaDevices
+                .getUserMedia({
+                  video: {
+                    mandatory: {
+                      chromeMediaSource: 'desktop',
+                      chromeMediaSourceId: response.streamId
+                    }
+                  }
+                })
+                .then(returnedStream => {
+                  stream = returnedStream
+                  video.srcObject = stream;
+                  btnStart.style.display = 'none';
+                  btnStop.style.display = 'block';
+                })
+                .catch(err => {
+                  console.error('無法取得串流: ', err);
+                });
+            } else {
+              console.error('無法取得串流');
+            }
+          });
+        });
+
+        btnStop.addEventListener('click', event => {
+          stream.getTracks().forEach(track => track.stop());
+          video.src = '';
+          btnStop.style.display = 'none';
+          btnStart.style.display = 'block';
+        });
+      });
+    })();
+  </script>
+</body>
+
+</html>

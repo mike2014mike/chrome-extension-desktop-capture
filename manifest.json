@@ -1,0 +1,21 @@
+{
+  "name": "Sample - Desktop Capture",
+  "description": "An extension to capture something.",
+  "version": "0.1.0",
+  "manifest_version": 2,
+  "background": {
+    "scripts": [
+      "myscript.js"
+    ],
+    "persistent": false
+  },
+  "externally_connectable": {
+    "matches": [
+      "*://localhost/*",
+      "*://127.0.0.1/*"
+    ]
+  },
+  "permissions": [
+    "desktopCapture"
+  ]
+}
